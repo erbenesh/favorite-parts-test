@@ -93,21 +93,24 @@ function OffersTable() {
                   <OfferTypeBadge isAnalogue={offer.isAnalogue} />
                 </div>
                 <div className="offer-card__grid">
-                  <div>
+                  <div className="offer-card__cell">
                     <div className="offer-card__label">
-                      <i className="bi bi-upc" aria-hidden="true" /> Артикул
+                      <i className="bi bi-upc" aria-hidden="true" />
+                      Артикул
                     </div>
                     <div className="font-monospace text-break">{offer.number || '—'}</div>
                   </div>
-                  <div className="text-end">
+                  <div className="offer-card__cell offer-card__cell--stock">
                     <div className="offer-card__label">
-                      <i className="bi bi-box-seam" aria-hidden="true" /> Остаток
+                      <i className="bi bi-box-seam" aria-hidden="true" />
+                      Остаток
                     </div>
-                    <div>{offer.count ?? 0}</div>
+                    <div className="offer-card__stock-value">{offer.count ?? 0}</div>
                   </div>
-                  <div className="offer-card__price">
+                  <div className="offer-card__cell offer-card__price">
                     <div className="offer-card__label">
-                      <i className="bi bi-tag" aria-hidden="true" /> Стоимость
+                      <i className="bi bi-tag" aria-hidden="true" />
+                      Стоимость
                     </div>
                     <div className="fw-semibold fs-6">{formatPrice(offer.price)}</div>
                   </div>
