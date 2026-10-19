@@ -1,16 +1,29 @@
+import { useSelector } from 'react-redux';
 import SearchForm from './components/SearchForm';
 import ManufacturersList from './components/ManufacturersList';
 import OffersTable from './components/OffersTable';
+import EmptyState from './components/EmptyState';
 
 function App() {
+  const { manufacturersStatus, offersStatus } = useSelector((state) => state.parts);
+  const showEmpty =
+    manufacturersStatus === 'idle' && offersStatus === 'idle';
+
   return (
     <div className="app-shell min-vh-100">
       <header className="app-header py-3 py-md-4 mb-3 mb-md-4">
         <div className="container-fluid container-xl px-3 px-sm-4">
-          <h1 className="app-title mb-1 text-white">Favorit Parts</h1>
-          <p className="app-subtitle mb-0 text-white-50">
-            Поиск производителей, предложений и аналогов автозапчастей
-          </p>
+          <div className="app-header__row">
+            <div className="app-brand" aria-hidden="true">
+              <i className="bi bi-gear-wide-connected" />
+            </div>
+            <div>
+              <h1 className="app-title mb-1 text-white">Favorit Parts</h1>
+              <p className="app-subtitle mb-0 text-white-50">
+                Поиск производителей, предложений и аналогов автозапчастей
+              </p>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -18,6 +31,7 @@ function App() {
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10 col-xl-9">
             <SearchForm />
+            {showEmpty ? <EmptyState /> : null}
             <ManufacturersList />
             <OffersTable />
           </div>

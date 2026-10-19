@@ -41,6 +41,7 @@ function ManufacturersList() {
     <section className="mt-3 mt-md-4">
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <h2 className="h5 mb-0 text-break">
+          <i className="bi bi-buildings me-2" aria-hidden="true" />
           Производители
           {article ? (
             <span className="text-secondary fw-normal"> — «{article}»</span>

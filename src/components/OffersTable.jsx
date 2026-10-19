@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
-import Loader from './Loader';
 import ErrorAlert from './ErrorAlert';
+import SkeletonList from './SkeletonList';
 
 function formatPrice(price) {
   if (price == null || Number.isNaN(Number(price))) return '—';
@@ -29,15 +29,30 @@ function OffersTable() {
 
   if (offersStatus === 'idle') return null;
 
-  // Первая загрузка — ещё нечего показывать
+  // Первая загрузка — скелетон вместо «моргания» пустой таблицы
   if (isLoading && !hasOffers) {
-    return <Loader text="Загружаем аналоги и предложения…" />;
+    return (
+      <section className="mt-3 mt-md-4">
+        <h2 className="h5 mb-3">
+          <i className="bi bi-table me-2" aria-hidden="true" />
+          Предложения и аналоги
+          {brandLabel ? (
+            <span className="text-secondary fw-normal"> — {brandLabel}</span>
+          ) : null}
+        </h2>
+        <SkeletonList rows={5} />
+        <p className="text-secondary small mt-2 mb-0">
+          Загружаем аналоги и предложения…
+        </p>
+      </section>
+    );
   }
 
   return (
     <section className="mt-3 mt-md-4">
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <h2 className="h5 mb-0">
+          <i className="bi bi-table me-2" aria-hidden="true" />
           Предложения и аналоги
           {brandLabel ? (
             <span className="text-secondary fw-normal"> — {brandLabel}</span>
@@ -48,38 +63,52 @@ function OffersTable() {
             <div className="spinner-border spinner-border-sm" aria-hidden="true" />
             <span>Обновление…</span>
           </div>
-        ) : null}
+        ) : (
+          <span className="text-secondary small">
+            {offers.length}{' '}
+            {offers.length === 1 ? 'позиция' : 'позиций'}
+          </span>
+        )}
       </div>
 
       {offersStatus === 'failed' ? <ErrorAlert message={offersError} /> : null}
 
       {hasOffers ? (
         <div className={`offers-panel position-relative ${isLoading ? 'is-loading' : ''}`}>
-          {/* Мобильные карточки */}
+          {/* Мобильные карточки — CSS Grid */}
           <div className="d-md-none offers-cards">
             {offers.map((offer, index) => (
               <article
                 key={`${offer.brand}-${offer.number}-card-${index}`}
                 className="offer-card"
               >
-                <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div className="offer-card__top">
                   <div className="min-w-0">
                     <div className="fw-semibold text-break">{offer.name || '—'}</div>
-                    <div className="small text-secondary text-break">{offer.brand || '—'}</div>
+                    <div className="small text-secondary text-break">
+                      <i className="bi bi-building me-1" aria-hidden="true" />
+                      {offer.brand || '—'}
+                    </div>
                   </div>
                   <OfferTypeBadge isAnalogue={offer.isAnalogue} />
                 </div>
-                <div className="row g-2 small">
-                  <div className="col-6">
-                    <div className="text-secondary">Артикул</div>
+                <div className="offer-card__grid">
+                  <div>
+                    <div className="offer-card__label">
+                      <i className="bi bi-upc" aria-hidden="true" /> Артикул
+                    </div>
                     <div className="font-monospace text-break">{offer.number || '—'}</div>
                   </div>
-                  <div className="col-6 text-end">
-                    <div className="text-secondary">Остаток</div>
+                  <div className="text-end">
+                    <div className="offer-card__label">
+                      <i className="bi bi-box-seam" aria-hidden="true" /> Остаток
+                    </div>
                     <div>{offer.count ?? 0}</div>
                   </div>
-                  <div className="col-12">
-                    <div className="text-secondary">Стоимость</div>
+                  <div className="offer-card__price">
+                    <div className="offer-card__label">
+                      <i className="bi bi-tag" aria-hidden="true" /> Стоимость
+                    </div>
                     <div className="fw-semibold fs-6">{formatPrice(offer.price)}</div>
                   </div>
                 </div>

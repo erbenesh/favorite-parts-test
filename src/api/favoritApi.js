@@ -3,7 +3,7 @@ const API_KEY = '00000000-0000-0000-0000-000000000001';
 // Dev: Vite proxy. Prod: same-origin or configure your own proxy.
 const BASE_URL = '/api/hsprice/';
 
-function buildUrl({ number, brand, analogues }) {
+export function buildUrl({ number, brand, analogues }) {
   const params = new URLSearchParams({ key: API_KEY, number });
 
   if (brand) {
@@ -29,8 +29,50 @@ const HTTP_ERROR_MESSAGES = {
   503: 'Сервис временно недоступен (503). Попробуйте позже.',
 };
 
-function messageForHttpStatus(status) {
+export function messageForHttpStatus(status) {
   return HTTP_ERROR_MESSAGES[status] || `Ошибка сервера: ${status}`;
+}
+
+/** Отфильтровать пустые ответы API (нет бренда = «не найдено»). */
+export function pickManufacturers(goods) {
+  const list = Array.isArray(goods) ? goods : [];
+  return list.filter((item) => item.brand && item.brand.trim() !== '');
+}
+
+/** Основная позиция + вложенные analogues → плоский список для таблицы. */
+export function flattenOffers(goods) {
+  const list = Array.isArray(goods) ? goods : [];
+  const offers = [];
+
+  list.forEach((item) => {
+    if (!item.brand && !item.name) return;
+
+    offers.push({
+      brand: item.brand,
+      name: item.name,
+      number: item.number,
+      price: item.price,
+      count: item.count,
+      isAnalogue: false,
+    });
+
+    if (Array.isArray(item.analogues)) {
+      item.analogues.forEach((analogue) => {
+        if (!analogue.brand && !analogue.name) return;
+
+        offers.push({
+          brand: analogue.brand,
+          name: analogue.name,
+          number: analogue.number,
+          price: analogue.price,
+          count: analogue.count,
+          isAnalogue: true,
+        });
+      });
+    }
+  });
+
+  return offers;
 }
 
 async function request(params, signal) {
@@ -72,11 +114,7 @@ async function request(params, signal) {
 /** Этап 1: список производителей по артикулу */
 export async function fetchManufacturers(number, signal) {
   const data = await request({ number }, signal);
-  const goods = Array.isArray(data.goods) ? data.goods : [];
-
-  const manufacturers = goods.filter(
-    (item) => item.brand && item.brand.trim() !== '',
-  );
+  const manufacturers = pickManufacturers(data.goods);
 
   if (manufacturers.length === 0) {
     throw new Error('По данному артикулу ничего не найдено.');
@@ -91,37 +129,7 @@ export async function fetchManufacturers(number, signal) {
  */
 export async function fetchOffers(number, brand, signal) {
   const data = await request({ number, brand, analogues: true }, signal);
-  const goods = Array.isArray(data.goods) ? data.goods : [];
-
-  const offers = [];
-
-  goods.forEach((item) => {
-    if (!item.brand && !item.name) return;
-
-    offers.push({
-      brand: item.brand,
-      name: item.name,
-      number: item.number,
-      price: item.price,
-      count: item.count,
-      isAnalogue: false,
-    });
-
-    if (Array.isArray(item.analogues)) {
-      item.analogues.forEach((analogue) => {
-        if (!analogue.brand && !analogue.name) return;
-
-        offers.push({
-          brand: analogue.brand,
-          name: analogue.name,
-          number: analogue.number,
-          price: analogue.price,
-          count: analogue.count,
-          isAnalogue: true,
-        });
-      });
-    }
-  });
+  const offers = flattenOffers(data.goods);
 
   if (offers.length === 0) {
     throw new Error('Предложения и аналоги не найдены.');
